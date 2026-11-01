@@ -319,7 +319,8 @@ export async function fetchFollowingPage(
   const url = new URL("https://api.bilibili.com/x/relation/followings")
   url.searchParams.set("vmid", String(vmid))
   url.searchParams.set("pn", String(page))
-  url.searchParams.set("ps", "50")
+  // 每页 50 个时，B 站从大约第 225 个关注开始反复返回前面的人，名单就停在那里。
+  url.searchParams.set("ps", "20")
   const json = await biliGet(
     url.toString(),
     `https://space.bilibili.com/${vmid}/fans/follow`,

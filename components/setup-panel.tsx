@@ -400,7 +400,7 @@ function phaseLabel(phase: "idle" | "followings" | "inspect" | "paused" | "done"
 }
 
 function estimateMinutes(count: number, paceMs: number, checkVideos: boolean) {
-  const calls = Math.ceil(count / 50) + count * (checkVideos ? 1.55 : 1)
+  const calls = Math.ceil(count / 20) + count * (checkVideos ? 1.55 : 1)
   const seconds = calls * (paceMs / 1000 + 0.25)
   return Math.max(1, Math.round(seconds / 60))
 }

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { extractSessdata } from "@/lib/cookie"
 import { DEMO_ME, demoUsers } from "@/lib/demo"
+import { FOLLOWING_PAGE_SIZE, isStalePage, mergeFollowings } from "@/lib/followings"
 import { PRESETS } from "@/lib/presets"
 import type {
   FollowingUser,
@@ -88,7 +89,6 @@ export function CleanerApp() {
   const checkRef = useRef(checkVideos)
   const usersRef = useRef(users)
   const sourceRef = useRef(source)
-  const nextPageRef = useRef(nextPage)
   const doneRef = useRef(followingsDone)
   const totalRef = useRef(total)
   const uidRef = useRef(uid)
@@ -101,7 +101,6 @@ export function CleanerApp() {
     checkRef.current = checkVideos
     usersRef.current = users
     sourceRef.current = source
-    nextPageRef.current = nextPage
     doneRef.current = followingsDone
     totalRef.current = total
     uidRef.current = uid
@@ -252,7 +251,7 @@ export function CleanerApp() {
     const fromDemo = sourceRef.current === "demo"
     const reset = mode === "fresh" || fromDemo
     let list = reset ? [] : [...usersRef.current]
-    let page = reset ? 1 : nextPageRef.current
+    let page = 1
     let done = reset ? false : doneRef.current
     let knownTotal = reset ? null : totalRef.current
     if (fromDemo) setMarks({})
@@ -268,8 +267,14 @@ export function CleanerApp() {
     try {
       if (!done) {
         setPhase("followings")
+        let stalePages = 0
         while (alive()) {
-          setStatusLine(`正在拉取关注列表，第 ${page} 页`)
+          const got = list.length
+          setStatusLine(
+            knownTotal
+              ? `正在拉取关注，已获得 ${got} / ${knownTotal}`
+              : `正在拉取关注，已获得 ${got}`
+          )
           const data = await postJson<FollowingsPayload>("/api/bilibili/followings", {
             sessdata: sessRef.current,
             vmid: uidNumber,
@@ -285,13 +290,23 @@ export function CleanerApp() {
             done = true
             break
           }
-          const seen = new Set(list.map((user) => user.mid))
-          for (const user of data.list) {
-            if (!seen.has(user.mid)) list.push({ ...user, inspect: null })
-          }
+          const merged = mergeFollowings(
+            list,
+            data.list.map((user) => ({ ...user, inspect: null }))
+          )
+          const added = merged.added
+          list = merged.users
           setUsers([...list])
           if (knownTotal != null && list.length >= knownTotal) {
             done = true
+            break
+          }
+          if (isStalePage(page, FOLLOWING_PAGE_SIZE, got, added)) stalePages += 1
+          else stalePages = 0
+          if (stalePages >= 2) {
+            setError(
+              `拉到 ${list.length} 个之后，后面的页面没有新的人。已改成每页 ${FOLLOWING_PAGE_SIZE} 个；如果人数还是远少于关注总数，请确认 Cookie 和 UID 是同一个账号。`
+            )
             break
           }
           page += 1
@@ -303,6 +318,11 @@ export function CleanerApp() {
         if (!alive()) {
           setPhase("paused")
           setStatusLine("已暂停，进度留在这台浏览器里")
+          return
+        }
+        if (!done) {
+          setPhase("paused")
+          setStatusLine(`关注名单还没拉完，已获得 ${list.length}${knownTotal ? ` / ${knownTotal}` : ""}`)
           return
         }
       }
