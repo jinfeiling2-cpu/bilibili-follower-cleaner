@@ -329,15 +329,15 @@ export function CleanerApp() {
 
       setPhase("inspect")
       const attempted = new Set<number>()
+      let riskStreak = 0
       while (alive()) {
         const pending = list.filter(
           (user) => (!user.inspect || user.inspect.status === "error") && !attempted.has(user.mid)
         )
         if (pending.length === 0) break
         const chunk = pending.slice(0, 6)
-        for (const user of chunk) attempted.add(user.mid)
-        const finished = list.length - pending.length
-        setStatusLine(`正在体检 ${Math.max(finished, 0)} / ${list.length}`)
+        const saved = list.filter((user) => user.inspect && user.inspect.status !== "error").length
+        setStatusLine(`正在体检 ${saved} / ${list.length}`)
         const data = await postJson<InspectPayload>("/api/bilibili/inspect", {
           sessdata: sessRef.current,
           mids: chunk.map((user) => user.mid),
@@ -345,9 +345,17 @@ export function CleanerApp() {
           paceMs: paceRef.current,
         })
         const byMid = new Map(data.results.map((item) => [item.mid, item]))
+        let blocked = 0
+        let succeeded = 0
         list = list.map((user) => {
           const result = byMid.get(user.mid)
           if (!result) return user
+          if (result.status === "error" && result.retry) {
+            blocked += 1
+            return user
+          }
+          attempted.add(user.mid)
+          if (result.status !== "error") succeeded += 1
           return {
             ...user,
             uname: result.uname || user.uname,
@@ -357,9 +365,19 @@ export function CleanerApp() {
           }
         })
         setUsers([...list])
-        if (data.riskDelayMs) {
+        if (blocked > 0 && succeeded === 0) {
+          riskStreak += 1
+          if (riskStreak >= 2) {
+            setPhase("paused")
+            setStatusLine(`已查完 ${saved} / ${list.length}。B 站开始拦截，先停住。`)
+            setError("已查完的结果都还在。等一两分钟再点继续，会从还没查完的人接着查。")
+            return
+          }
           setStatusLine("B 站有风控迹象，自动放慢一点")
-          await sleep(data.riskDelayMs)
+          await sleep(Math.max(data.riskDelayMs ?? 0, 8000))
+        } else {
+          riskStreak = 0
+          if (data.riskDelayMs) await sleep(data.riskDelayMs)
         }
       }
       if (!alive()) {

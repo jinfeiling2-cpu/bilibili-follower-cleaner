@@ -56,6 +56,7 @@ export type InspectResult = {
   recentCount: number
   viewsHidden: boolean
   error?: string
+  retry?: boolean
 }
 
 export type SavedUser = FollowingUser & {

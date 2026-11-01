@@ -447,6 +447,7 @@ export async function inspectMid(
   } catch (error) {
     const result = blankInspect(mid, "error")
     result.error = error instanceof Error ? error.message : "名片获取失败"
+    result.retry = true
     return result
   }
 
@@ -456,6 +457,7 @@ export async function inspectMid(
   if (json.code !== 0 || !card) {
     const result = blankInspect(mid, "error")
     result.error = biliMessage(json.code, json.message)
+    result.retry = isRisk(json) || json.code == null
     return result
   }
 

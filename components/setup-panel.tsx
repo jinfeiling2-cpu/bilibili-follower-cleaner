@@ -291,6 +291,7 @@ export function SetupPanel({
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{statusLine || phaseLabel(phase)}</span>
               <span>
+                {phase === "followings" ? "" : "已查完 "}
                 {inspected}
                 {total ? ` / ${total}` : ""}
               </span>
