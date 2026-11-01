@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "关注体检",
   description: "从 B 站关注列表里筛出失效、长期不更新、投稿极少、播放很低或粉丝很少的账号。",
+  applicationName: "关注体检",
+  authors: [{ name: "Feiling Jin" }],
+  robots: { index: false, follow: false },
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -2,12 +2,19 @@
   "name": "bili-follow-check",
   "version": "0.1.0",
   "private": true,
+  "description": "从 B 站关注列表里筛出失效、长期不更新、投稿极少、播放很低或粉丝很少的账号，由你自己决定是否取关。",
+  "license": "MIT",
+  "author": "Feiling Jin",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 43127",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 --port 43127",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test lib/judge.test.ts lib/cookie.test.ts"
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/judge.test.ts lib/cookie.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
