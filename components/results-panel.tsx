@@ -520,9 +520,9 @@ function Actions({
   return (
     <div className="flex flex-row flex-wrap gap-2 sm:w-28 sm:flex-col">
       <Button
-        type="button"
         variant="outline"
         className="h-8 flex-1 sm:flex-none"
+        nativeButton={false}
         render={<a href={`https://space.bilibili.com/${user.mid}`} target="_blank" rel="noreferrer" />}
       >
         打开主页
