@@ -367,14 +367,17 @@ export function CleanerApp() {
         setUsers([...list])
         if (blocked > 0 && succeeded === 0) {
           riskStreak += 1
-          if (riskStreak >= 2) {
+          const waitMs = Math.min(180_000, 30_000 * riskStreak)
+          const savedNow = list.filter((user) => user.inspect && user.inspect.status !== "error").length
+          const resumed = await waitUnlessPaused(waitMs, alive, (left) => {
+            const seconds = Math.ceil(left / 1000)
+            setStatusLine(`已查完 ${savedNow} / ${list.length}。B 站拦截了，${seconds} 秒后自动继续。`)
+          })
+          if (!resumed) {
             setPhase("paused")
-            setStatusLine(`已查完 ${saved} / ${list.length}。B 站开始拦截，先停住。`)
-            setError("已查完的结果都还在。等一两分钟再点继续，会从还没查完的人接着查。")
+            setStatusLine("已暂停，进度留在这台浏览器里")
             return
           }
-          setStatusLine("B 站有风控迹象，自动放慢一点")
-          await sleep(Math.max(data.riskDelayMs ?? 0, 8000))
         } else {
           riskStreak = 0
           if (data.riskDelayMs) await sleep(data.riskDelayMs)
@@ -588,4 +591,15 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function waitUnlessPaused(ms: number, alive: () => boolean, onTick: (left: number) => void) {
+  const end = Date.now() + ms
+  while (alive()) {
+    const left = end - Date.now()
+    if (left <= 0) return true
+    onTick(left)
+    await sleep(Math.min(1000, left))
+  }
+  return false
 }
