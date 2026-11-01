@@ -1,0 +1,58 @@
+import type { PresetId, Thresholds } from "@/lib/types"
+
+export const PRESETS: Record<PresetId, Thresholds> = {
+  dead: {
+    inactiveDays: 365,
+    fewVideosMax: 2,
+    lowViewsMax: 500,
+    lowFansMax: 500,
+    minReasons: 1,
+    flagInvalid: true,
+    flagBanned: true,
+    flagInactive: false,
+    flagFewVideos: false,
+    flagNoVideos: false,
+    flagLowViews: false,
+    flagLowFans: false,
+    excludeOfficial: false,
+    excludeSpecial: false,
+  },
+  zombie: {
+    inactiveDays: 365,
+    fewVideosMax: 2,
+    lowViewsMax: 500,
+    lowFansMax: 500,
+    minReasons: 1,
+    flagInvalid: true,
+    flagBanned: true,
+    flagInactive: true,
+    flagFewVideos: true,
+    flagNoVideos: true,
+    flagLowViews: true,
+    flagLowFans: true,
+    excludeOfficial: true,
+    excludeSpecial: true,
+  },
+  loose: {
+    inactiveDays: 180,
+    fewVideosMax: 8,
+    lowViewsMax: 5000,
+    lowFansMax: 3000,
+    minReasons: 1,
+    flagInvalid: true,
+    flagBanned: true,
+    flagInactive: true,
+    flagFewVideos: true,
+    flagNoVideos: true,
+    flagLowViews: true,
+    flagLowFans: true,
+    excludeOfficial: true,
+    excludeSpecial: true,
+  },
+}
+
+export const PRESET_LABEL: Record<PresetId, string> = {
+  dead: "只看失效",
+  zombie: "清理僵尸",
+  loose: "放宽一点",
+}
