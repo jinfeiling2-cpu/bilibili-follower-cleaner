@@ -1,6 +1,10 @@
 # 关注体检
 
-从你自己的 B 站关注列表里，把这些账号拣成一份清单：
+清理 B 站关注列表的本地工具：把失效关注、僵尸号、长期不更新、投稿很少、播放很低或粉丝很少的账号做成一份取关清单。
+
+A local Bilibili following cleaner. It lists cancelled, inactive, low-output, low-view, and low-follower accounts. You unfollow them yourself.
+
+从你自己的关注列表里，它会拣出：
 
 - 已经注销，或空间已经打不开
 - 被封禁
